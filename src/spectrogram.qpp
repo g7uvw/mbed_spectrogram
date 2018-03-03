@@ -1,0 +1,63 @@
+#include "mbed.h"
+
+#define spec_width  100
+#define spec_height  25
+
+uint8_t col, row;
+uint8_t sample;
+
+uint8_t spectrogram[spec_width][spec_height]; // 20k bytes
+
+void blank_spectrogram(void)
+{
+//fill spectrogram with zero
+  for (col = 0; col <  spec_width; col++ )
+  {
+    for (row = 0; row < spec_height; row++)
+        {
+          spectrogram[col][row] = 0;
+        }
+  }
+}
+
+uint8_t read_adc(void)
+{
+  return 127;
+}
+
+void draw_spectogram(uint8_t points[], uint8_t size)
+{
+//assume size is the same as spec_height for now, so ignore it.
+
+//copy columns to the left
+  for (col = 0; col < spec_width-1; col++)
+      {
+        for (row = 0; row < spec_height; row++)
+            {
+               spectrogram[col][row] = spectrogram[col+1][row];
+            }
+      }
+
+// pick rightmost column for insertion
+  col = spec_width-1;
+
+// fill last column with new values
+  for (row = 0; row < spec_height ; row++)
+      {
+        spectrogram[col][row] = points[row];
+      }
+
+myLCD.FastWindow(true);
+
+for (col = 0; col < spec_width; col++)
+    {
+      for (row = 0; row < spec_height; row++)
+          {
+            //this will need fixing to give colours properly
+            mylcd.pixel(col,row,spectrogram[col][row]);
+          }
+    }
+
+myLCD.copy_to_lcd();
+myLCD.FastWindow(false);
+}
